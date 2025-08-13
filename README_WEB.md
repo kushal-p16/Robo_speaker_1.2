@@ -6,7 +6,7 @@ A fun, interactive text-to-speech (TTS) web application with an animated robot f
 # 🚀 Live Demo
 You can try out the live version of RoboSpeaker here:
 
-https://kushal-p16.github.io/Robo_speaker/
+ https://kushal-p16.github.io/Robo_speaker_1.2/
 
 
 # ✨ Features
