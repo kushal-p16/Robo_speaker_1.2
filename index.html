@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoboSpeaker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the page */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .roboto-mono {
+            font-family: 'Roboto Mono', monospace;
+        }
+        /* Animation for the robot's mouth when speaking */
+        .speaking {
+            animation: speak-animation 0.5s infinite alternate;
+        }
+        @keyframes speak-animation {
+            0% {
+                transform: scaleY(0.8);
+                border-color: #4ade80; /* green-400 */
+            }
+            100% {
+                transform: scaleY(1.2);
+                border-color: #818cf8; /* indigo-400 */
+            }
+        }
+        /* Blinking animation for the eyes */
+        .eye {
+            animation: blink-animation 4s infinite;
+        }
+        @keyframes blink-animation {
+            0%, 95%, 100% {
+                transform: scaleY(1);
+            }
+            97.5% {
+                transform: scaleY(0.1);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
+
+    <!-- Main container for the application -->
+    <div class="w-full max-w-md mx-auto bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 space-y-6 border border-gray-700">
+        
+        <!-- Header -->
+        <header class="text-center">
+            <h1 class="text-3xl font-bold text-indigo-400 roboto-mono">RoboSpeaker</h1>
+            <p class="text-gray-400 mt-1">I'll say whatever you type!<br> made by kushal p</p>
+        </header>
+
+        <!-- Robot Face -->
+        <div id="robot-face" class="flex flex-col items-center justify-center space-y-4 p-4 bg-gray-900/50 rounded-xl">
+            <!-- Eyes -->
+            <div class="flex space-x-8">
+                <div class="eye w-12 h-12 bg-indigo-400 rounded-full border-4 border-gray-900 shadow-lg"></div>
+                <div class="eye w-12 h-12 bg-indigo-400 rounded-full border-4 border-gray-900 shadow-lg"></div>
+            </div>
+            <!-- Mouth -->
+            <div id="robot-mouth" class="w-24 h-8 bg-gray-800 rounded-lg border-2 border-gray-600 transition-all duration-300"></div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="w-full">
+            <label for="text-to-speak" class="block text-sm font-medium text-gray-300 mb-2">Enter text here:</label>
+            <textarea id="text-to-speak" rows="4" class="w-full p-3 bg-gray-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-300 resize-none" placeholder="Hello, I am a friendly robot..."></textarea>
+        </div>
+
+        <!-- Action Button -->
+        <button id="speak-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-indigo-500/50">
+            Make Me Speak
+        </button>
+
+        <!-- Status Message -->
+        <div id="status-message" class="text-center text-sm text-red-400 h-4"></div>
+
+    </div>
+
+    <script>
+        // --- DOM Element References ---
+        const speakButton = document.getElementById('speak-button');
+        const textToSpeak = document.getElementById('text-to-speak');
+        const robotMouth = document.getElementById('robot-mouth');
+        const statusMessage = document.getElementById('status-message');
+
+        // --- Check for Browser Support ---
+        const isSpeechSupported = 'speechSynthesis' in window;
+
+        if (!isSpeechSupported) {
+            speakButton.disabled = true;
+            statusMessage.textContent = "Sorry, your browser doesn't support text-to-speech.";
+            textToSpeak.placeholder = "Speech synthesis not available.";
+        }
+
+        // --- Event Listener for the Button ---
+        speakButton.addEventListener('click', () => {
+            // Get the text from the textarea
+            const text = textToSpeak.value.trim();
+
+            if (text === '') {
+                // If there's no text, provide a default message
+                const utterance = new SpeechSynthesisUtterance("Please type something for me to say.");
+                speakText(utterance);
+            } else {
+                // Create a speech utterance object
+                const utterance = new SpeechSynthesisUtterance(text);
+                speakText(utterance);
+            }
+        });
+
+        // --- Event Listener for Enter Key in Textarea ---
+        textToSpeak.addEventListener('keydown', (event) => {
+            // Check if the Enter key was pressed without the Shift key
+            if (event.key === 'Enter' && !event.shiftKey) {
+                // Prevent the default action (which is to add a new line)
+                event.preventDefault();
+                // Programmatically click the speak button to reuse its logic
+                speakButton.click();
+            }
+        });
+
+        /**
+         * Function to handle speaking the text and animating the mouth
+         * @param {SpeechSynthesisUtterance} utterance - The speech object to be spoken.
+         */
+        function speakText(utterance) {
+            // Clear any previously queued speech
+            window.speechSynthesis.cancel();
+
+            // Event listener for when speech starts
+            utterance.onstart = () => {
+                robotMouth.classList.add('speaking');
+            };
+
+            // Event listener for when speech ends
+            utterance.onend = () => {
+                robotMouth.classList.remove('speaking');
+            };
+            
+            // Event listener for errors
+            utterance.onerror = (event) => {
+                statusMessage.textContent = `An error occurred: ${event.error}`;
+                robotMouth.classList.remove('speaking');
+            }
+
+            // Speak the text
+            window.speechSynthesis.speak(utterance);
+        }
+    </script>
+</body>
+</html>
